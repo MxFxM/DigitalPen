@@ -65,6 +65,8 @@ bool isCapturing = false;
 // "Full" by default to start in idle
 int numSamplesRead = 0;
 
+bool skip_next_sample = false;
+
 
 //==============================================================================
 // TensorFlow variables
@@ -153,6 +155,7 @@ void loop() {
       // Above the threshold?
       if (average >= MOTION_THRESHOLD) {
         isCapturing = true;
+        skip_next_sample = false;
         numSamplesRead = 0;
         break;
       }
@@ -168,53 +171,59 @@ void loop() {
       IMU.readAcceleration(aX, aY, aZ);
       IMU.readGyroscope(gX, gY, gZ);
 
-      // Normalize the IMU data between -1 to 1 and store in the model's
-      // input tensor. Accelerometer data ranges between -4 and 4,
-      // gyroscope data ranges between -2000 and 2000
-      tflInputTensor->data.f[numSamplesRead * 6 + 0] = aX / 4.0;
-      tflInputTensor->data.f[numSamplesRead * 6 + 1] = aY / 4.0;
-      tflInputTensor->data.f[numSamplesRead * 6 + 2] = aZ / 4.0;
-      tflInputTensor->data.f[numSamplesRead * 6 + 3] = gX / 2000.0;
-      tflInputTensor->data.f[numSamplesRead * 6 + 4] = gY / 2000.0;
-      tflInputTensor->data.f[numSamplesRead * 6 + 5] = gZ / 2000.0;
+      if (skip_next_sample) {
+        skip_next_sample = false;
+      } else {
+        skip_next_sample = true;
 
-      numSamplesRead++;
-
-      // Do we have the samples we need?
-      if (numSamplesRead == NUM_SAMPLES) {
-        
-        // Stop capturing
-        isCapturing = false;
-        
-        // Run inference
-        TfLiteStatus invokeStatus = tflInterpreter->Invoke();
-        if (invokeStatus != kTfLiteOk) {
-          Serial.println("Error: Invoke failed!");
-          while (1);
-          return;
-        }
-
-        // Loop through the output tensor values from the model
-        int maxIndex = 0;
-        float maxValue = 0;
-        for (int i = 0; i < NUM_GESTURES; i++) {
-          float _value = tflOutputTensor->data.f[i];
-          if(_value > maxValue){
-            maxValue = _value;
-            maxIndex = i;
+        // Normalize the IMU data between -1 to 1 and store in the model's
+        // input tensor. Accelerometer data ranges between -4 and 4,
+        // gyroscope data ranges between -2000 and 2000
+        tflInputTensor->data.f[numSamplesRead * 6 + 0] = aX / 4.0;
+        tflInputTensor->data.f[numSamplesRead * 6 + 1] = aY / 4.0;
+        tflInputTensor->data.f[numSamplesRead * 6 + 2] = aZ / 4.0;
+        tflInputTensor->data.f[numSamplesRead * 6 + 3] = gX / 2000.0;
+        tflInputTensor->data.f[numSamplesRead * 6 + 4] = gY / 2000.0;
+        tflInputTensor->data.f[numSamplesRead * 6 + 5] = gZ / 2000.0;
+  
+        numSamplesRead++;
+  
+        // Do we have the samples we need?
+        if (numSamplesRead == NUM_SAMPLES) {
+          
+          // Stop capturing
+          isCapturing = false;
+          
+          // Run inference
+          TfLiteStatus invokeStatus = tflInterpreter->Invoke();
+          if (invokeStatus != kTfLiteOk) {
+            Serial.println("Error: Invoke failed!");
+            while (1);
+            return;
           }
-          Serial.print(GESTURES[i]);
-          Serial.print(": ");
-          Serial.println(tflOutputTensor->data.f[i], 6);
+  
+          // Loop through the output tensor values from the model
+          int maxIndex = 0;
+          float maxValue = 0;
+          for (int i = 0; i < NUM_GESTURES; i++) {
+            float _value = tflOutputTensor->data.f[i];
+            if(_value > maxValue){
+              maxValue = _value;
+              maxIndex = i;
+            }
+            Serial.print(GESTURES[i]);
+            Serial.print(": ");
+            Serial.println(tflOutputTensor->data.f[i], 6);
+          }
+          
+          Serial.print("Winner: ");
+          Serial.print(GESTURES[maxIndex]);
+          
+          Serial.println();
+  
+          // Add delay to not double trigger
+          delay(CAPTURE_DELAY);
         }
-        
-        Serial.print("Winner: ");
-        Serial.print(GESTURES[maxIndex]);
-        
-        Serial.println();
-
-        // Add delay to not double trigger
-        delay(CAPTURE_DELAY);
       }
     }
   }
