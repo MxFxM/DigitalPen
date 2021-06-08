@@ -204,16 +204,27 @@ void loop() {
   
           // Loop through the output tensor values from the model
           int maxIndex = 0;
+          int secIndex = 0;
           float maxValue = 0;
+          float secValue = 0;
           for (int i = 0; i < NUM_GESTURES; i++) {
             float _value = tflOutputTensor->data.f[i];
             if(_value > maxValue){
+              secValue = maxValue;
               maxValue = _value;
+              secIndex = maxIndex;
               maxIndex = i;
             }
           }
           
           Serial.print(GESTURES[maxIndex]);
+          Serial.print(' ');
+          Serial.print(int(maxValue * 100.));
+
+          Serial.print('\t');
+          
+          Serial.print(GESTURES[secIndex]);
+          Serial.print(int(maxValue * 100.));
           
           Serial.println();
   
