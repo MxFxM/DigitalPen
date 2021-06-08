@@ -99,6 +99,47 @@ This is what was expected here also, but it did not happen.
     \caption{Signal Level too Low}
 \end{figure}
 
+\section{Hello Iteration}
+
+Since even the Din A5 sized letters were too small, the project idea was changed from detecting written letters to detecting letters that are drawn into the air.
+The bigger letters also have larger acceleration at the corners or curves of the letter, thus better signals.
+
+\begin{figure}[H]
+    \includegraphics[width=\textwidth]{better_signal_A.png}
+    \caption{Improved Signal for Letter 'A'}
+\end{figure}
+
+For better reproducibility the movement for each letter was noted on a piece of paper.
+Dots represent corners or turning points in the gesture and the lines are the motions in between.
+The numbers represent the order of the points.
+
+The unique signals lead to training accuracy hitting 100\% after only 30 epochs.
+This is technically bad, since it would mean that overfitting has occured.
+However, the validation accuracy also reached 100\%.
+
+\begin{figure}[H]
+    \includegraphics[width=\textwidth]{very_fast_training_reults_HALO.png}
+    \caption{Easy Training}
+\end{figure}
+
+\newpage
+This is possible, because the four signals of the letters have large variations.
+Mistaking an 'l' (lower case L) for an 'o' for example is quite difficult.
+
+There are a lot of letters that look very similar between upper and lower case.
+For example lower case L and upper case i, or lower case o and upper case O.
+Hence it was decided to go for upper case letters only.
+
+The model was good enough to detect, capture and classify the letters 'H', 'A', 'L' and 'O'.
+
+\begin{figure}[H]
+    \includegraphics[width=\textwidth]{result_HALO.png}
+    \caption{Result with 4 Letters 'H', 'A', 'L' and 'O'}
+\end{figure}
+
+\newpage
+\section{Capturing the whole Alphabet}
+
 \section{First Section}
 This is the first section.
 
