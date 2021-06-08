@@ -48,6 +48,57 @@ That way the hand motion can be interpreted differently, for example to differen
 
 However, the glove has to be worn and especially in hot summer days, this might not be preferable.
 
+After receiving an advertisement of the Tiny Motion Trainer which can be used in conjuction with an Arduino Nano 33 BLE Sense to train a neural network to detect gestures, the project was started.
+
+\section{Tiny Motion Trainer Workflow}
+
+The tiny motion trainer workflow is very similar to a "real" machine learning or deep learning workflow.
+
+First the settings for the project are configured.
+In this case, a small threshold is used to detect the start of the motion.
+This is necessary, because the acceleration is measured and some letters do not have a high acceleration at the beginning.
+100 samples are collected for each gesture, which supposedly gives about 1 second time, so 100 samples pre second.
+After a letter is captured, the pen delays the next detection for 1 second to give the user some time to move his hand to a suitable starting position for the next motion.
+
+The second step is to capture data.
+Any number of labels (or at least more than 25) can be created.
+For each label it is recommended to capture at least 20 samples.
+The Arduino Nano connects via bluetooth directly to the browser.
+This means that a browser with access to the bluetooth module of the laptop or PC has to be used, which would be Chrome or Edge (Edge is based on Chrome).
+
+Then the model can be trained.
+After training the model can directly in the browser be tested.
+
+Once the results are satisfying, the model can be downloaded, even with an example code to directly compile and upload to the Arduino.
+This code is then able to run without the bluetooth connection to a host PC.
+
+\newpage
+\section{Hello (World)}
+
+Obviously the first word that comes to mind for a programmer is hello.
+In german it is "Hallo", which consists of four different letters: H, a, l and o.
+
+The intended use for a digital pen was something that would clip on to the back of a normal pen and that would digitalize the written letters.
+After fixing the Arduino to a pen, letters were written on a piece of paper.
+
+Normal handwriting draws very small letters, which becomes even more evident when looking at the signal amplitudes that were captured.
+Even when drawing letters the size of a Din A5 page, the acceleration values were barely over the noise level.
+
+\begin{figure}[H]
+    \includegraphics[width=\textwidth]{slow_training_start.png}
+    \caption{No Accuracy Increase}
+\end{figure}
+
+When training the model with 10 samples for each letter, the resulting model was not really able to distinguish between the letters.
+Due to this problem, the training also did not achieve high accuracy.
+When training models on the mnist dataset, the accuracy rises very quickly in the beginning and the flattens out.
+This is what was expected here also, but it did not happen.
+
+\begin{figure}[H]
+    \includegraphics[width=\textwidth]{uncertain_results.png}
+    \caption{Signal Level too Low}
+\end{figure}
+
 \section{First Section}
 This is the first section.
 
@@ -81,5 +132,8 @@ Ressources used for an in this project: \\
 
 The video from Zack Freedman \\
 \href{https://www.youtube.com/watch?v=6raRftH9yxM}{https://www.youtube.com/watch?v=6raRftH9yxM} \\
+
+Tiny Motion Trainer \\
+\href{https://experiments.withgoogle.com/tiny-motion-trainer}{https://experiments.withgoogle.com/tiny-motion-trainer} \\
 
 \end{document}
