@@ -220,11 +220,14 @@ void loop() {
           Serial.print(GESTURES[maxIndex]);
           Serial.print(' ');
           Serial.print(int(maxValue * 100.));
+          Serial.print('%');
 
           Serial.print('\t');
           
           Serial.print(GESTURES[secIndex]);
-          Serial.print(int(maxValue * 100.));
+          Serial.print(' ');
+          Serial.print(int(secValue * 100.));
+          Serial.print('%');
           
           Serial.println();
   
