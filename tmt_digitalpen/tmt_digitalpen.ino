@@ -211,12 +211,8 @@ void loop() {
               maxValue = _value;
               maxIndex = i;
             }
-            Serial.print(GESTURES[i]);
-            Serial.print(": ");
-            Serial.println(tflOutputTensor->data.f[i], 6);
           }
           
-          Serial.print("Winner: ");
           Serial.print(GESTURES[maxIndex]);
           
           Serial.println();
