@@ -1,3 +1,4 @@
 tiny_motion_trainer/models/*
 tiny_motion_trainer/samples/*
 tiny_motion_trainer/screenshots/*
+video/*

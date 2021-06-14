@@ -35,7 +35,14 @@ The accelerometer and gyroscope data is used for the prediction.
 All letters can be detected with over 50\% certainty.
 By modifying the example output of the Tiny Motion Trainer the model can be executed standalone.
 
+The largest part of this project turned out to be lessons learned about the importance of good samples for training a neural network.
+
 An additionaly battery, charging and protection circuit could be added to make the pen truly wireless.
+
+\begin{figure}[H]
+    \includegraphics[width=\textwidth]{pen_in_hand.jpg}
+    \caption{Digital Pen in my Hand}
+\end{figure}
 
 \newpage
 \section{Inspiration}
@@ -59,6 +66,12 @@ Until then, the Arduino is just held on the side of the text marker using some r
 In a next step it would be possible to also fit a small lithium polymer battery inside the pen, along with a charging and boost circuit.
 The pen could then connect via BLE and would be wireless.
 
+\begin{figure}[H]
+    \includegraphics[width=\textwidth]{pen.jpg}
+    \caption{Digital Pen}
+\end{figure}
+
+\newpage
 \section{Tiny Motion Trainer Workflow}
 
 The tiny motion trainer workflow is very similar to a "real" machine learning or deep learning workflow.
@@ -224,6 +237,11 @@ All in all it took 10 iterations to get a working model.
 
 \newpage
 \subsection{New Character Movements}
+
+\begin{figure}[H]
+    \includegraphics[width=\textwidth]{characters.jpg}
+    \caption{The Initial Character Movements}
+\end{figure}
 
 These characters were re-captured, because they could not be distinguished by the model:
 
