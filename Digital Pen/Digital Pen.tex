@@ -50,6 +50,15 @@ However, the glove has to be worn and especially in hot summer days, this might 
 
 After receiving an advertisement of the Tiny Motion Trainer which can be used in conjuction with an Arduino Nano 33 BLE Sense to train a neural network to detect gestures, the project was started.
 
+\section{Hardware}
+
+The hardware for the project consists of a text marker and the Arduino Nano 33 BLE Sense.
+The text marker can be cleaned once depleted and the Arduino will then fit inside.
+Until then, the Arduino is just held on the side of the text marker using some rubber bands and tape to fix the power cable in place.
+
+In a next step it would be possible to also fit a small lithium polymer battery inside the pen, along with a charging and boost circuit.
+The pen could then connect via BLE and would be wireless.
+
 \section{Tiny Motion Trainer Workflow}
 
 The tiny motion trainer workflow is very similar to a "real" machine learning or deep learning workflow.
@@ -99,7 +108,7 @@ This is what was expected here also, but it did not happen.
     \caption{Signal Level too Low}
 \end{figure}
 
-\section{Hello Iteration}
+\subsection{Hello Iteration}
 
 Since even the Din A5 sized letters were too small, the project idea was changed from detecting written letters to detecting letters that are drawn into the air.
 The bigger letters also have larger acceleration at the corners or curves of the letter, thus better signals.
