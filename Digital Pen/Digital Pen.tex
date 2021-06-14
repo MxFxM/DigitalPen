@@ -22,7 +22,6 @@
 \tableofcontents
 \newpage
 \listoffigures %delete if not necessary
-\listoftables %delete if not necessary
 \newpage
 
 \section*{Abstract}
@@ -249,7 +248,7 @@ The movement was changed to represent more of an 8 than the S, to have stronger 
 
 X movement had to be captured again.
 The pen seems to have been turned slightly when capturing the original samples.
-When the pen was held at an angle the classigication was very good, while it would not recognize the X at all when the pen was hold at the same angle as for the other characters.
+When the pen was held at an angle the classification was very good, while it would not recognize the X at all when the pen was hold at the same angle as for the other characters.
 
 \newpage
 \section{Example Code}
@@ -265,6 +264,9 @@ There is not too much to understand.
 This will be different for every project.
 
 The rest of the code is a "one size fits all" kind of solution.
+
+Also one note at this point: During the compilation of the example code the Arduino IDE shows some warnings that appear in red.
+This looks very scary, but the code compiles and runs just fine.
 
 There is one section that is project specific.
 The settings are entered here, threshold, capture delay and the number of samples.
@@ -375,17 +377,53 @@ for (int i = 0; i < NUM_GESTURES; i++) {
 
 \subsection{Fixes}
 
-\begin{lstlisting}
-\end{lstlisting}
+Some fixes had to be done to get the code running for this application.
+
+Because the classification is not 100\% correct, the highest and second highest probability character are displayed at the output.
+To do so, the for loop looking for the highest value also keeps track of the previous one (second highest).
 
 \begin{lstlisting}
+int maxIndex = 0;
+int secIndex = 0;
+float maxValue = 0;
+float secValue = 0;
+for (int i = 0; i < NUM_GESTURES; i++) {
+    float _value = tflOutputTensor->data.f[i];
+    if(_value > maxValue){
+    secValue = maxValue;
+    maxValue = _value;
+    secIndex = maxIndex;
+    maxIndex = i;
+    }
+}
 \end{lstlisting}
 
-\begin{lstlisting}
-\end{lstlisting}
+There is one severe problem with the code, that almost lead to me discarting the project.
+The sample rate of the example rate seems to differ from the training sample rate of the online tool.
+The time for each character was cut nearly in half, meaning characters would have to be drawn way quicker into the air.
+Faster movements also come with higher acceleration and thus the characters still were not recognized.
+
+The same code to check the sample rate of the sensor as above was also present in the training code.
+Both showed a sample rate of 119 Hz, so the samples should take about the same time.
+However, the solution came from the feeling, that it was about "two times too fast".
+By throwing away every other sample, the example code worked fine with the trained model.
 
 \begin{lstlisting}
+if (skip_next_sample) {
+    skip_next_sample = false;
+} else {
+    skip_next_sample = true;
+
+    // sample used
+    // ...
+}
 \end{lstlisting}
+
+The explanation for this could be that the data transfer from the Arduino to the laptop via BLE is so slow, that samples are missed.
+This results in about the same behaviour as discarting every other sample.
+
+A cleaner solution would be to allocate the memory for the specified number of samples initialy and filling it.
+Once the whole sample is captured, the buffer could then be transmitted to the laptop.
 
 \newpage
 \section{Links}
