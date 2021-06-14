@@ -3,6 +3,7 @@
 % use this when images are included
 \usepackage{float}
 \usepackage{graphicx}
+\usepackage{subcaption}
 \graphicspath{ {./images/} }
 
 % use for lines of code
@@ -149,30 +150,241 @@ The model was good enough to detect, capture and classify the letters 'H', 'A', 
 \newpage
 \section{Capturing the whole Alphabet}
 
-\section{First Section}
-This is the first section.
+More characters were added as labels.
+This chapter is more of a lessons learned than anything else.
 
-\subsection{A Subsection}
-Some maths. \\
+To have repeatable characters, the movements required were drawn on a piece of paper.
+Later these could be adopted to achieve more unique signals.
 
-$R_{1} = R_{2} = Z_{0} * \frac{N + 1}{N - 1} $\\
+A possible improvement would be to also capture some of the training data while standing up (and not sitting on a chair), because the hand movements vary slightly.
 
-$R_{3} = Z_{0} * \frac{N^2 - 1}{2N} $\\
+Sometimes the internet connection would cut out, losing some of the captured data.
+It is important to save often.
+This is no burden in this case, because the amount of data is very limited.
 
-\subsection{Second Subsection}
+Large characters with high acceleration have stronger signals and thus help the model to achieve higher accuracy.
 
-With images...
+The more sample and classes (unique labels) that were added, the slower the training process became.
+
+When restarting the training process on the Tiny Motion Trainer, the training starts over from zero.
+It is better to start with a high number of epochs and stop early than having the training stop before hitting a good accuracy, just because the number of epochs was too small.
+At first it looked like a good idea to run the training for 260 epochs (26 characters times 10), but later it was discovered, that 500 is a better number.
+
+The accuracy was in the range of 89\% at first.
+With 1 of 26 being about 0.04 and 3 out of 26 about 0.11 this would mean that 3 characters could not be recognized or distinguished in the training.
+
+The training was suspiciously slow on the chromebook I used at first.
+As it turns out, Tiny Motion Trainer does not run the training on some Google server, but on the local machine instead.
+While running it on a better equipped desktop computer, it seems to even make use of the installed NVIDIA GPU, making training about 100 times faster.
+Instead of hours the training only took minutes.
+The fast loop time is essential for fast iterations and thus fast improvement.
+
+The whole project with all sampmles is saved as one .json file which enables moving the whole project between machines for data capture and training.
+This was necessary, because the desktop PC does not have BLE to connect to the Arduino for data capture.
+
+After failing to recognize some characters, a closer look at the data was in order.
+It became obvious, that the "bad" characters do have very different samples.
+This is due to the threshold for the detection of the start of the movement.
+While looking through the captured samples, this was the case more often than I'd like to admit.
 
 \begin{figure}[H]
-    %\includegraphics[width=\textwidth]{filename.png}
-    \caption{Title of the image}
+    \includegraphics[width=\textwidth]{different_samples_not_good.png}
+    \caption{Different G Samples due to Detection Threshold}
 \end{figure}
 
-\subsubsection{Subsub Section}
-A line of code:
+The number and position of the peaks in the sample should be similar.
+This also means that the movement was done uniformly.
+There are no faster or slower parts to it.
+
+This is even more important when looking at the model used for recognition.
+Instead of some kind of LSTM, a typical convolutional neural network is used.
+Due to the memory and speed constrains of the microcontroller, this makes sense.
+With a task that would benefit of time data, or rather the different parts of the movement being recognized one after the other, it is not ideal.
+
+The Arduino also captures gyroscope data alongside the acceleration.
+Some characters thus rely on a turning motion of the wrist.
+Even small variation in the movement decides between no detection at all and more than 90\%.
+
+\begin{figure}[H]
+    \begin{subfigure}[b]{\linewidth}
+        \includegraphics[width=\linewidth]{train_1.png}
+        \caption{Starting with Bad Samples}
+    \end{subfigure}
+    \begin{subfigure}[b]{\linewidth}
+        \includegraphics[width=\linewidth]{train_2.png}
+        \caption{Better Samples}
+    \end{subfigure}
+    \begin{subfigure}[b]{\linewidth}
+        \includegraphics[width=\linewidth]{train_3.png}
+        \caption{Good Samples and Longer Training}
+    \end{subfigure}
+    \caption{Influence of Sample Quality}
+\end{figure}
+
+All in all it took 10 iterations to get a working model.
+
+\newpage
+\subsection{New Character Movements}
+
+These characters were re-captured, because they could not be distinguished by the model:
+
+D was changed to lower case character, because it was too similar to B.
+
+F was too similar to E at the beginning.
+It was changed to a lower case f, in order to have a more unique movement with the arc on top.
+
+G showed very bad accuracy due to its similarity to O, C and Q.
+It was changed to lower case.
+
+J was not classified to any letter, not even a wrong one.
+All classes had a small percentage of possibility.
+This is wired, because there is no similar character.
+
+K movement was improved by making it closer to a lower case k (at least for me).
+
+L was captured once more, to have a more pronounced change in direction between the horizontal and the vertical part.
+
+S was not recognized at first.
+The movement was changed to represent more of an 8 than the S, to have stronger and fuller arcs / circles.
+
+X movement had to be captured again.
+The pen seems to have been turned slightly when capturing the original samples.
+When the pen was held at an angle the classigication was very good, while it would not recognize the X at all when the pen was hold at the same angle as for the other characters.
+
+\newpage
+\section{Example Code}
+
+The Tiny Motion Trainer allows to download the model with an Arduino example code to directly compile.
+This is a very nice feature to get started quickly.
+The code can easily be changed to fit specific needs.
+
+\subsection{Understanding the Example}
+
+The model is packed as a large byte array into its own header file.
+There is not too much to understand.
+This will be different for every project.
+
+The rest of the code is a "one size fits all" kind of solution.
+
+There is one section that is project specific.
+The settings are entered here, threshold, capture delay and the number of samples.
+There is also an array that holds the label for each output of the neural network.
 
 \begin{lstlisting}
-    dump_errors(odrv0, True)
+// Values from Tiny Motion Trainer
+#define MOTION_THRESHOLD 0.1
+#define CAPTURE_DELAY 1000 // This is now in milliseconds
+#define NUM_SAMPLES 100
+
+// Array to map gesture index to a name
+const char *GESTURES[] = {
+    "H", "A", "L", "O", "B", "C", "D", "E", "F", "G", ...
+};
+\end{lstlisting}
+
+After initializing the inertial measurement unit, the sample rate is read and displayed.
+This will become important later on.
+If the initialization fails, the code loops forever and does not continue.
+
+\begin{lstlisting}
+// Initialize IMU sensors
+if (!IMU.begin()) {
+    Serial.println("Failed to initialize IMU!");
+    while (1);
+}
+
+// Print out the samples rates of the IMUs
+Serial.print("Accelerometer sample rate: ");
+Serial.print(IMU.accelerationSampleRate());
+Serial.println(" Hz");
+Serial.print("Gyroscope sample rate: ");
+Serial.print(IMU.gyroscopeSampleRate());
+Serial.println(" Hz");
+\end{lstlisting}
+
+The memory for the model is allocated and pointers are initialized to point to the first layer, as input, and the last layer to retrieve the output.
+
+\begin{lstlisting}
+// Allocate memory for the model's input and output tensors
+tflInterpreter->AllocateTensors();
+
+// Get pointers for the model's input and output tensors
+tflInputTensor = tflInterpreter->input(0);
+tflOutputTensor = tflInterpreter->output(0);
+\end{lstlisting}
+
+The main loop reads acceleration and gyroscope data until the threshold is met.
+Then the loop breaks and the sampling starts.
+
+\begin{lstlisting}
+// Above the threshold?
+if (average >= MOTION_THRESHOLD) {
+    isCapturing = true;
+    skip_next_sample = false;
+    numSamplesRead = 0;
+    break;
+}
+\end{lstlisting}
+
+Sampling will continue until the required number of samples was captured.
+
+\begin{lstlisting}
+// Do we have the samples we need?
+if (numSamplesRead == NUM_SAMPLES) {
+\end{lstlisting}
+
+The samples are written directly to the input pointer of the model.
+An offset is added between each sample.
+The values are also normalized before they are written to the input.
+Having values in the range of -1 to 1 helps the training of the neural network.
+This normalization is also done for the initial data capturing befor training.
+If it were done only here, the network would not work correctly.
+In this case the gyroscope sampels would be too high in comparison, because they reach from -2000 to 2000 while the acceleration is only within -4 and 4.
+
+\begin{lstlisting}
+// Normalize the IMU data between -1 to 1 and store in the model's
+// input tensor. Accelerometer data ranges between -4 and 4,
+// gyroscope data ranges between -2000 and 2000
+tflInputTensor->data.f[numSamplesRead * 6 + 0] = aX / 4.0;
+tflInputTensor->data.f[numSamplesRead * 6 + 1] = aY / 4.0;
+tflInputTensor->data.f[numSamplesRead * 6 + 2] = aZ / 4.0;
+tflInputTensor->data.f[numSamplesRead * 6 + 3] = gX / 2000.0;
+tflInputTensor->data.f[numSamplesRead * 6 + 4] = gY / 2000.0;
+tflInputTensor->data.f[numSamplesRead * 6 + 5] = gZ / 2000.0;
+\end{lstlisting}
+
+Inference is run by calling one single function.
+The reults is checked afterwards, for errors during execution.
+
+\begin{lstlisting}
+// Run inference
+TfLiteStatus invokeStatus = tflInterpreter->Invoke();
+\end{lstlisting}
+
+Then a loop can run over the results, looking for the highest probability sample.
+
+\begin{lstlisting}
+for (int i = 0; i < NUM_GESTURES; i++) {
+    float _value = tflOutputTensor->data.f[i];
+    if(_value > maxValue){
+        maxValue = _value;
+        maxIndex = i;
+    }
+}
+\end{lstlisting}
+
+\subsection{Fixes}
+
+\begin{lstlisting}
+\end{lstlisting}
+
+\begin{lstlisting}
+\end{lstlisting}
+
+\begin{lstlisting}
+\end{lstlisting}
+
+\begin{lstlisting}
 \end{lstlisting}
 
 \newpage
